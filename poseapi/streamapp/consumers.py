@@ -12,4 +12,7 @@ class VideoStreamConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        # Process here the received video frame
+        frame_data = text_data_json["data"]  # This is your base64 encoded image
+
+        # For testing, let's just print a confirmation that a frame was received
+        print("Frame received")

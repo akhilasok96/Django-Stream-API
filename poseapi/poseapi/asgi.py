@@ -12,17 +12,15 @@ import os
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-import streamapp.routing  # You will create this file in the next step
+import streamapp.routing
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "myproject.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "poseapi.settings")
 
 application = ProtocolTypeRouter(
     {
         "http": get_asgi_application(),
         "websocket": AuthMiddlewareStack(
-            URLRouter(
-                streamapp.routing.websocket_urlpatterns  # Reference to your routing.py file
-            )
+            URLRouter(streamapp.routing.websocket_urlpatterns)
         ),
     }
 )
