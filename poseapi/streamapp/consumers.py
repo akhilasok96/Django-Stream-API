@@ -8,7 +8,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 
 # Initialize MediaPipe Pose.
 mp_pose = mp.solutions.pose
-pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+pose = mp_pose.Pose(min_detection_confidence=0.6, min_tracking_confidence=0.5)
 
 
 def calculate_angle(a, b, c):
@@ -68,9 +68,8 @@ class VideoStreamConsumer(AsyncWebsocketConsumer):
                 self.counter += 1
 
             # Prepare data to send back
-            keypoints = {
-                f"point_{i}": [lmk.x, lmk.y] for i, lmk in enumerate(landmarks)
-            }
+            keypoints = [[lmk.x, lmk.y] for lmk in landmarks]
+
             data = {
                 "keypoints": keypoints,
                 "counter": self.counter,
