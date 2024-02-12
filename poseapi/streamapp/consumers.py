@@ -6,7 +6,6 @@ import cv2
 import mediapipe as mp
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-# Initialize MediaPipe Pose.
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose(min_detection_confidence=0.6, min_tracking_confidence=0.5)
 
@@ -27,6 +26,7 @@ def calculate_angle(a, b, c):
 class VideoStreamConsumer(AsyncWebsocketConsumer):
     counter = 0
     stage = None
+    voice_prompt = ""
 
     async def connect(self):
         await self.accept()
@@ -60,19 +60,22 @@ class VideoStreamConsumer(AsyncWebsocketConsumer):
             angle = calculate_angle(shoulder, elbow, wrist)
             print(f"Calculated Angle: {angle}")
 
-            # Bicep curl logic
-            if angle > 160:
+            if angle > 160 and self.stage != "down":
                 self.stage = "down"
-            if angle < 30 and self.stage == "down":
+                self.voice_prompt = "Go Up"
+            elif angle < 30 and self.stage == "down":
                 self.stage = "up"
                 self.counter += 1
+                self.voice_prompt = "Go Down"
+            else:
+                self.voice_prompt = ""
 
-            # Prepare data to send back
             keypoints = [[lmk.x, lmk.y] for lmk in landmarks]
 
             data = {
                 "keypoints": keypoints,
                 "counter": self.counter,
                 "stage": self.stage,
+                "voice_prompt": self.voice_prompt,
             }
             await self.send(json.dumps(data))
