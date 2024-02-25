@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Add Exercise</title>
+  </head>
+  <body>
+    <h2>Add New Exercise</h2>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <p>
+        <label for="id_name">Exercise Name:</label><br />
+        {{ form.name }}
+      </p>
+      <p>
+        <label for="id_target_muscle_group">Target Muscle Group:</label><br />
+        {{ form.target_muscle_group }}
+      </p>
+      <p>
+        <label for="id_difficulty_level">Difficulty:</label><br />
+        {{ form.difficulty }}
+      </p>
+      <p>
+        <label for="id_calories_burned_per_repetition"
+          >Calories Burned Per Repetition:</label
+        ><br />
+        {{ form.calories_burned_per_repetition }}
+      </p>
+      <p>
+        <label for="id_youtube_link">YouTube Link (optional):</label><br />
+        {{ form.youtube_link }}
+      </p>
+      <p>
+        <label for="id_image">Exercise Image:</label><br />
+        <input type="file" name="image" id="id_image" />
+      </p>
+      <button type="submit">Submit</button>
+    </form>
+  </body>
+</html>
