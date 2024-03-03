@@ -1,12 +1,13 @@
-from django.shortcuts import render, HttpResponse
 from django.shortcuts import render, redirect
 from .forms import ExerciseForm
 from django.http import HttpResponse
-import uuid
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .serializers import ExerciseSerializer
+from firebase_admin import firestore
 from .firebase_config import db, bucket
 
 
-# Create your views here.
 def home(request):
     return render(request, "base.html")
 
@@ -16,12 +17,15 @@ def add_exercise(request):
         form = ExerciseForm(request.POST, request.FILES)
         if form.is_valid():
             # Save the uploaded file to Firebase Storage
-            image = request.FILES["image"]
-            blob = bucket.blob("exercise_images/{}".format(image.name))
-            blob.upload_from_file(image, content_type=image.content_type)
+            image = request.FILES.get("image")  # Use .get for safer access
+            if image:  # Check if an image was uploaded
+                blob = bucket.blob(f"exercise_images/{image.name}")
+                blob.upload_from_file(image, content_type=image.content_type)
 
-            # Get the URL of the uploaded file
-            image_url = blob.public_url
+                # Get the URL of the uploaded file
+                image_url = blob.public_url
+            else:
+                image_url = None  # Handle case where no image is provided
 
             # Store exercise details in Firestore
             exercise_data = {
@@ -40,3 +44,33 @@ def add_exercise(request):
     else:
         form = ExerciseForm()
     return render(request, "add_exercise.html", {"form": form})
+
+
+class ExerciseListView(APIView):
+    def get(self, request):
+        exercises = db.collection("exercises").stream()
+        exercise_list = [exercise.to_dict() for exercise in exercises]
+        serializer = ExerciseSerializer(exercise_list, many=True)
+        return Response(serializer.data)
+
+
+class ExercisesByTargetMuscleGroupView(APIView):
+    def get(self, request, target_muscle_group):
+        exercises = (
+            db.collection("exercises")
+            .where("target_muscle_group", "==", target_muscle_group)
+            .stream()
+        )
+        exercise_list = [exercise.to_dict() for exercise in exercises]
+        serializer = ExerciseSerializer(exercise_list, many=True)
+        return Response(serializer.data)
+
+
+class ExercisesByDifficultyView(APIView):
+    def get(self, request, difficulty):
+        exercises = (
+            db.collection("exercises").where("difficulty", "==", difficulty).stream()
+        )
+        exercise_list = [exercise.to_dict() for exercise in exercises]
+        serializer = ExerciseSerializer(exercise_list, many=True)
+        return Response(serializer.data)
