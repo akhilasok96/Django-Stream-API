@@ -4,8 +4,8 @@ from . import views
 
 urlpatterns = [
     path("", views.home, name="home"),
-    path("add_exercise", views.add_exercise, name="add_exercise"),
-    path("api/exercises", views.ExerciseListView.as_view(), name="exercise-list"),
+    path("add_exercise/", views.add_exercise, name="add_exercise"),
+    path("api/exercises/", views.ExerciseListView.as_view(), name="exercise-list"),
     path(
         "api/exercises/target/<str:target_muscle_group>/",
         views.ExercisesByTargetMuscleGroupView.as_view(),
