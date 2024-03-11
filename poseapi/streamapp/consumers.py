@@ -3,30 +3,21 @@ import json
 import base64
 import numpy as np
 import cv2
-import mediapipe as mp
 from channels.generic.websocket import AsyncWebsocketConsumer
-
-mp_pose = mp.solutions.pose
-pose = mp_pose.Pose(min_detection_confidence=0.6, min_tracking_confidence=0.5)
-
-
-def calculate_angle(a, b, c):
-    a = np.array(a)  # First
-    b = np.array(b)  # Mid
-    c = np.array(c)  # End
-    radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(
-        a[1] - b[1], a[0] - b[0]
-    )
-    angle = np.abs(radians * 180.0 / np.pi)
-    if angle > 180.0:
-        angle = 360 - angle
-    return angle
+from utils import mp_pose
+from type_of_exercise import TypeOfExercise
 
 
 class VideoStreamConsumer(AsyncWebsocketConsumer):
-    counter = 0
-    stage = None
-    voice_prompt = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.counter = 0
+        self.stage = None
+        self.voice_prompt = ""
+        self.pose = mp_pose.Pose(
+            min_detection_confidence=0.6, min_tracking_confidence=0.5
+        )
 
     async def connect(self):
         await self.accept()
@@ -35,47 +26,36 @@ class VideoStreamConsumer(AsyncWebsocketConsumer):
         pass
 
     async def receive(self, text_data):
-        frame_data = json.loads(text_data)["data"]
+        data = json.loads(text_data)
+        exercise_type = data.get(
+            "exercise_type", "bicep_curl"
+        )  # Assume default exercise
+        frame_data = data["data"]
         frame = base64.b64decode(frame_data.split(",")[1])
         frame = np.frombuffer(frame, dtype=np.uint8)
-        frame = cv2.imdecode(frame, flags=1)  # Convert to a cv2 image
+        frame = cv2.imdecode(frame, flags=1)
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         image.flags.writeable = False
-        results = pose.process(image)
+        results = self.pose.process(image)
 
         if results.pose_landmarks:
             landmarks = results.pose_landmarks.landmark
-            shoulder = [
-                landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
-                landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y,
-            ]
-            elbow = [
-                landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x,
-                landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y,
-            ]
-            wrist = [
-                landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x,
-                landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y,
-            ]
-            angle = calculate_angle(shoulder, elbow, wrist)
-            print(f"Calculated Angle: {angle}")
+            exercise_instance = TypeOfExercise(landmarks)
 
-            if angle > 160 and self.stage != "down":
-                self.stage = "down"
-                self.voice_prompt = "Go Up"
-            elif angle < 30 and self.stage == "down":
-                self.stage = "up"
-                self.counter += 1
-                self.voice_prompt = "Go Down"
-            else:
-                self.voice_prompt = ""
+            if exercise_type == "bicep_curl":
+                self.counter, self.stage, voice_prompt = exercise_instance.bicep_curl(
+                    self.counter, self.stage
+                )
+            elif exercise_type == "squat":
+                self.counter, self.stage, voice_prompt = exercise_instance.squat(
+                    self.counter, self.stage
+                )
 
             keypoints = [[lmk.x, lmk.y] for lmk in landmarks]
-
-            data = {
+            response = {
                 "keypoints": keypoints,
                 "counter": self.counter,
                 "stage": self.stage,
-                "voice_prompt": self.voice_prompt,
+                "voice_prompt": voice_prompt,
             }
-            await self.send(json.dumps(data))
+            await self.send(json.dumps(response))
