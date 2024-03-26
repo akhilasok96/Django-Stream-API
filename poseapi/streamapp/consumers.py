@@ -6,6 +6,7 @@ import cv2
 from channels.generic.websocket import AsyncWebsocketConsumer
 from utils import mp_pose
 from type_of_exercise import TypeOfExercise
+from .firebase_config import db
 
 
 class VideoStreamConsumer(AsyncWebsocketConsumer):
@@ -59,3 +60,28 @@ class VideoStreamConsumer(AsyncWebsocketConsumer):
                 "voice_prompt": voice_prompt,
             }
             await self.send(json.dumps(response))
+
+
+class UserInfoConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        pass
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+
+        user_info = {
+            "username": data["username"],
+            "email": data["email"],
+            "first_name": data["fname"],
+            "last_name": data["lname"],
+            "age": data["age"],
+            "gender": data["gender"],
+            "place": data["place"],
+            "weight": data["weight"],
+            "height": data["height"],
+        }
+        db.collection("users").add(user_info)
+        await self.send(json.dumps({"status": "UserInfo saved"}))
