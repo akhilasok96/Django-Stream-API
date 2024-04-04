@@ -16,6 +16,7 @@ class TypeOfExercise(BodyPartAngle):
             voice_prompt = "Go Down"
         else:
             voice_prompt = ""
+
         return counter, stage, voice_prompt
 
     def squat(self, counter, stage):

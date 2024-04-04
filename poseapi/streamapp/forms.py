@@ -6,7 +6,9 @@ class ExerciseForm(forms.Form):
     difficulty = forms.CharField(
         label="Difficulty Level", max_length=100, required=False
     )
+    pose_estimation = forms.CharField(label="Pose Estimation", max_length=100)
     target_muscle_group = forms.CharField(label="Target Muscle Group", max_length=100)
+    description = forms.CharField(label="Description", max_length=100)
     calories_burned_per_repetition = forms.FloatField(
         label="Calories Burned Per Repetition"
     )

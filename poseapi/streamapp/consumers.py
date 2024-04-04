@@ -3,8 +3,9 @@ import json
 import base64
 import numpy as np
 import cv2
+import pandas as pd
 from channels.generic.websocket import AsyncWebsocketConsumer
-from utils import mp_pose
+from utils import mp_pose, load_model
 from type_of_exercise import TypeOfExercise
 from .firebase_config import db
 
@@ -28,9 +29,11 @@ class VideoStreamConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
+        # print(data)
         exercise_type = data.get(
             "exercise_type", "bicep_curl"
         )  # Assume default exercise
+
         frame_data = data["data"]
         frame = base64.b64decode(frame_data.split(",")[1])
         frame = np.frombuffer(frame, dtype=np.uint8)
@@ -71,6 +74,7 @@ class UserInfoConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
+        print(data)
 
         user_info = {
             "username": data["username"],
@@ -85,3 +89,33 @@ class UserInfoConsumer(AsyncWebsocketConsumer):
         }
         db.collection("users").add(user_info)
         await self.send(json.dumps({"status": "UserInfo saved"}))
+
+
+class CaloriePredictionConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        pass
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+
+        model_input = {
+            "Gender": data.get("gender", ""),
+            "Age": int(data.get("age", 0)),
+            "Height": float(data.get("height", 0)),
+            "Weight": float(data.get("weight", 0)),
+            "Duration": float(data.get("duration", 0)),
+            "Heart_Rate": float(data.get("heart_rate", 0)),
+            "Body_Temp": float(data.get("body_temp", 0)),
+        }
+
+        pipeline = load_model("pipeline.pkl")
+
+        sample = pd.DataFrame([model_input])
+
+        prediction = pipeline.predict(sample)
+        print(f"Predicted Calories Burned: {prediction[0]}")
+
+        await self.send(json.dumps({"prediction": str(prediction[0])}))

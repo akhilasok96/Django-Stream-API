@@ -7,6 +7,8 @@ from .serializers import ExerciseSerializer
 from firebase_admin import firestore
 from .firebase_config import db, bucket
 
+import random
+
 
 def home(request):
     return render(request, "base.html")
@@ -27,11 +29,16 @@ def add_exercise(request):
             else:
                 image_url = None  # Handle case where no image is provided
 
+            exercise_id = random.randint(1000, 2500)
+
             # Store exercise details in Firestore
             exercise_data = {
+                "exercise_id": exercise_id,
                 "name": form.cleaned_data["name"],
+                "pose_estimation": form.cleaned_data["pose_estimation"],
                 "difficulty": form.cleaned_data["difficulty"],
                 "target_muscle_group": form.cleaned_data["target_muscle_group"],
+                "description": form.cleaned_data["description"],
                 "calories_burned_per_repetition": form.cleaned_data[
                     "calories_burned_per_repetition"
                 ],
