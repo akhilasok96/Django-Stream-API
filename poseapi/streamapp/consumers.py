@@ -89,6 +89,14 @@ class UserInfoConsumer(AsyncWebsocketConsumer):
             "height": data["height"],
         }
 
+        height_in_meters = float(data["height"]) / 100
+        weight_in_kg = float(data["weight"])
+
+        bmi = weight_in_kg / (height_in_meters * height_in_meters)
+        bmi_2d = float("{:.2f}".format(bmi))
+
+        user_info["bmi"] = bmi_2d
+
         if data.get("image"):
             image_data = data["image"].split(",")[1]
             image_bytes = base64.b64decode(image_data)

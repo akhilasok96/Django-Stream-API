@@ -16,6 +16,9 @@ class ExerciseSerializer(serializers.Serializer):
 class UserSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=100)
     email = serializers.EmailField()
+    height = serializers.FloatField()
+    weight = serializers.FloatField()
+    bmi = serializers.FloatField()
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=100)
     image_url = serializers.URLField()
