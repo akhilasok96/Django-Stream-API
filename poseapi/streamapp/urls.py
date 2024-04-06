@@ -16,4 +16,5 @@ urlpatterns = [
         views.ExercisesByDifficultyView.as_view(),
         name="exercises-by-difficulty",
     ),
+    path("api/user/<str:email>/", views.UserDataView.as_view(), name="user-data"),
 ]

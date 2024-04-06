@@ -11,3 +11,11 @@ class ExerciseSerializer(serializers.Serializer):
     calories_burned_per_repetition = serializers.FloatField()
     youtube_link = serializers.URLField(required=False)
     image_url = serializers.URLField(required=False)
+
+
+class UserSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=100)
+    email = serializers.EmailField()
+    first_name = serializers.CharField(max_length=100)
+    last_name = serializers.CharField(max_length=100)
+    image_url = serializers.URLField()

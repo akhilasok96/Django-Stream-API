@@ -1,13 +1,14 @@
 # streamapp/consumers.py
 import json
 import base64
+import datetime
 import numpy as np
 import cv2
 import pandas as pd
 from channels.generic.websocket import AsyncWebsocketConsumer
 from utils import mp_pose, load_model
 from type_of_exercise import TypeOfExercise
-from .firebase_config import db
+from .firebase_config import db, bucket
 
 
 class VideoStreamConsumer(AsyncWebsocketConsumer):
@@ -87,6 +88,18 @@ class UserInfoConsumer(AsyncWebsocketConsumer):
             "weight": data["weight"],
             "height": data["height"],
         }
+
+        if data.get("image"):
+            image_data = data["image"].split(",")[1]
+            image_bytes = base64.b64decode(image_data)
+            file_path = f"images/{data['username']}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+
+            blob = bucket.blob(file_path)
+            blob.upload_from_string(image_bytes, content_type="image/png")
+            blob.make_public()
+
+            user_info["image_url"] = blob.public_url
+
         db.collection("users").add(user_info)
         await self.send(json.dumps({"status": "UserInfo saved"}))
 
