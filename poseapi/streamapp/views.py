@@ -34,6 +34,7 @@ def add_exercise(request):
             exercise_data = {
                 "exercise_id": exercise_id,
                 "name": form.cleaned_data["name"],
+                "type": form.cleaned_data["type"],
                 "pose_estimation": form.cleaned_data["pose_estimation"],
                 "difficulty": form.cleaned_data["difficulty"],
                 "target_muscle_group": form.cleaned_data["target_muscle_group"],
