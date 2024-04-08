@@ -16,6 +16,8 @@ class ExerciseSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=100)
+    gender = serializers.CharField(max_length=100)
+    age = serializers.IntegerField()
     email = serializers.EmailField()
     height = serializers.FloatField()
     weight = serializers.FloatField()
