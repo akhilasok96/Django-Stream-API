@@ -159,9 +159,11 @@ class WorkoutLogsConsumer(AsyncWebsocketConsumer):
             "exercise_name": data["exercise_name"],
             "repetition": data["repetition"],
             "date": data["date"],
+            "time": data["time"],
             "bmi": data["bmi"],
             "duration": data["duration"],
             "predicted_calories": data["predicted_calories"],
+            "exercise_id": data["exercise_id"],
         }
 
         db.collection("workout_logs").add(workout_log_data)

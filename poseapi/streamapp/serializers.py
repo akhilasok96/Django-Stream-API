@@ -25,3 +25,16 @@ class UserSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=100)
     image_url = serializers.URLField()
+
+
+class WorkoutLogSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    first_name = serializers.CharField(max_length=100)
+    exercise_name = serializers.CharField(max_length=100)
+    exercise_id = serializers.IntegerField()
+    repetition = serializers.IntegerField()
+    date = serializers.DateField()
+    time = serializers.TimeField()
+    bmi = serializers.FloatField()
+    duration = serializers.FloatField()
+    predicted_calories = serializers.FloatField()

@@ -7,7 +7,7 @@ from .serializers import ExerciseSerializer
 from firebase_admin import firestore
 from .firebase_config import db, bucket
 from django.http import JsonResponse
-from .serializers import UserSerializer
+from .serializers import UserSerializer, WorkoutLogSerializer
 
 import random
 
@@ -61,6 +61,25 @@ class ExerciseListView(APIView):
         return Response(serializer.data)
 
 
+class ExerciseByIdView(APIView):
+    def get(self, request, exercise_id):
+        exercise_id = int(exercise_id)
+        exercises_ref = db.collection("exercises")
+        query_ref = exercises_ref.where("exercise_id", "==", exercise_id).limit(1)
+        docs = query_ref.stream()
+
+        exercise_data = None
+        for doc in docs:
+            exercise_data = doc.to_dict()
+            break
+
+        if exercise_data:
+            serializer = ExerciseSerializer(exercise_data)
+            return Response(serializer.data)
+        else:
+            return Response({"error": "Exercise not found"}, status=404)
+
+
 class ExercisesByTargetMuscleGroupView(APIView):
     def get(self, request, target_muscle_group):
         exercises = (
@@ -98,3 +117,19 @@ class UserDataView(APIView):
             return Response(serializer.data)
         else:
             return Response({"error": "User not found"}, status=404)
+
+
+class WorkoutLogView(APIView):
+    def get(self, request, email):
+        workout_logs_ref = db.collection("workout_logs")
+        query_ref = workout_logs_ref.where("email", "==", email).stream()
+
+        workout_logs = [log.to_dict() for log in query_ref]
+
+        if workout_logs:
+            serializer = WorkoutLogSerializer(workout_logs, many=True)
+            return Response(serializer.data)
+        else:
+            return Response(
+                {"error": "No workout logs found for this user"}, status=404
+            )
