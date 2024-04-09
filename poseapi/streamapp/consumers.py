@@ -140,3 +140,29 @@ class CaloriePredictionConsumer(AsyncWebsocketConsumer):
         print(f"Predicted Calories Burned: {prediction[0]}")
 
         await self.send(json.dumps({"prediction": str(prediction[0])}))
+
+
+class WorkoutLogsConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        pass
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        print(data)
+
+        workout_log_data = {
+            "email": data["email"],
+            "first_name": data["first_name"],
+            "exercise_name": data["exercise_name"],
+            "repetition": data["repetition"],
+            "date": data["date"],
+            "bmi": data["bmi"],
+            "duration": data["duration"],
+            "predicted_calories": data["predicted_calories"],
+        }
+
+        db.collection("workout_logs").add(workout_log_data)
+        await self.send(json.dumps({"status": "Workout log saved"}))
