@@ -5,6 +5,7 @@ class ExerciseSerializer(serializers.Serializer):
     exercise_id = serializers.IntegerField()
     name = serializers.CharField(max_length=100)
     type = serializers.CharField(max_length=100)
+    category = serializers.CharField(max_length=100)
     pose_estimation = serializers.CharField(max_length=100)
     difficulty = serializers.CharField(max_length=100, required=False)
     target_muscle_group = serializers.CharField(max_length=100)

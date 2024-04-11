@@ -31,9 +31,7 @@ class VideoStreamConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         # print(data)
-        exercise_type = data.get(
-            "exercise_type", "bicep_curl"
-        )  # Assume default exercise
+        exercise_type = data.get("exercise_type", "bicep_curl")
 
         frame_data = data["data"]
         frame = base64.b64decode(frame_data.split(",")[1])

@@ -35,6 +35,7 @@ def add_exercise(request):
                 "exercise_id": exercise_id,
                 "name": form.cleaned_data["name"],
                 "type": form.cleaned_data["type"],
+                "category": form.cleaned_data["category"],
                 "pose_estimation": form.cleaned_data["pose_estimation"],
                 "difficulty": form.cleaned_data["difficulty"],
                 "target_muscle_group": form.cleaned_data["target_muscle_group"],
@@ -86,6 +87,16 @@ class ExercisesByTargetMuscleGroupView(APIView):
             db.collection("exercises")
             .where("target_muscle_group", "==", target_muscle_group)
             .stream()
+        )
+        exercise_list = [exercise.to_dict() for exercise in exercises]
+        serializer = ExerciseSerializer(exercise_list, many=True)
+        return Response(serializer.data)
+
+
+class ExercisesByCategoryView(APIView):
+    def get(self, request, category):
+        exercises = (
+            db.collection("exercises").where("category", "==", category).stream()
         )
         exercise_list = [exercise.to_dict() for exercise in exercises]
         serializer = ExerciseSerializer(exercise_list, many=True)
